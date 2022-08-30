@@ -60,10 +60,14 @@ class TreeCrudTest:
         ccy_count = len(ccy_list)
 
         # Create swap records
+
+        vals = [100, 200, 300]  # List of values to assign to the 'notional' attribute
+
         swaps = [
             TreeSwap(
                 trade_id=f"T{i+1}",
                 trade_type="Swap",
+                notional=vals[i],
                 legs=[
                     TreeLeg(leg_type="Fixed", leg_ccy=ccy_list[i % ccy_count]),
                     TreeLeg(leg_type="Floating", leg_ccy="EUR"),
@@ -73,7 +77,7 @@ class TreeCrudTest:
         ]
         bonds = [
             TreeBond(
-                trade_id=f"T{i+1}", trade_type="Bond", bond_ccy=ccy_list[i % ccy_count]
+                trade_id=f"T{i+1}", trade_type="Bond", notional=vals[i], bond_ccy=ccy_list[i % ccy_count]
             )
             for i in range(2, 3)
         ]
@@ -147,6 +151,17 @@ class TreeCrudTest:
                 f"leg_type[0]={trade.legs[0].leg_type} leg_ccy[0]={trade.legs[0].leg_ccy} "
                 f"leg_type[1]={trade.legs[1].leg_type} leg_ccy[1]={trade.legs[1].leg_ccy}\n"
                 for trade in gbp_fixed_swaps
+            ]
+        )
+
+        # Retrieve all trades
+        notional_trades = TreeTrade.objects(notional__gte=200).order_by("trade_id")
+
+        # Add the result to approvaltests file
+        result += "Trades where notional >= 200:\n" + "".join(
+            [
+                f"    trade_id={trade.trade_id} trade_type={trade.trade_type} notional={trade.notional}\n"
+                for trade in notional_trades
             ]
         )
 
