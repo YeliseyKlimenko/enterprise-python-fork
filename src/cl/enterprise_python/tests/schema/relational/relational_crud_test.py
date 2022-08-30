@@ -79,10 +79,14 @@ class RelCrudTest:
         ]
 
         # Create swap records using legs
+
+        vals = [100, 200, 300]  # List of values to assign to the 'notional' attribute
+
         swaps: List[RelationalTrade] = [
             RelationalSwap(
                 trade_id=f"T{i + 1}",
                 trade_type="Swap",
+                notional=vals[i],
                 legs=[fixed_legs[i], floating_legs[i]],
             )
             for i in range(0, 2)
@@ -93,6 +97,7 @@ class RelCrudTest:
             RelationalBond(
                 trade_id=f"T{i + 1}",
                 trade_type="Bond",
+                notional=vals[i],
                 bond_ccy=ccy_list[i % ccy_count],
             )
             for i in range(2, 3)
@@ -185,6 +190,21 @@ class RelCrudTest:
                         f"leg_type[0]={trade.legs[0].leg_type} leg_ccy[0]={trade.legs[0].leg_ccy} "
                         f"leg_type[1]={trade.legs[1].leg_type} leg_ccy[1]={trade.legs[1].leg_ccy}\n"
                         for trade in gbp_fixed_swaps
+                    ]
+                )
+
+                # Retrieve all trades with notional >= 200
+                notional_trades = list(
+                    session.query(RelationalTrade)
+                    .where(RelationalTrade.notional >= 200)
+                    .order_by(RelationalTrade.trade_id)
+                )
+
+                # Add the result to approvaltests file
+                result += "Trades where notional >= 200:\n" + "".join(
+                    [
+                        f"    trade_id={trade.trade_id} trade_type={trade.trade_type} notional={trade.notional}\n"
+                        for trade in notional_trades
                     ]
                 )
 
